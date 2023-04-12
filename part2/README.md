@@ -138,3 +138,55 @@ const PersonForm = ( {addPerson, handleNameChange, handleNumberChange} ) => {
 }
 ```
 
+### c.getting_data_from_server
+
+1.event loop
+
+弄清楚这几个概念：
+
+`callstack`,`web apis`,`render queue`,`task queue`
+
+`callstack`是执行函数的地方。
+
+`web apis`是执行一些web 接口函数的地方，比如：`setTimeout`
+
+`task queue`是执行好的`web apis`的函数会到这个地方排队，直到`callstack`空了进入`callstack`执行。
+
+`render queue `在串行执行时不render，而在从`task queue`中回推完成的任务时进行人的人。
+
+这就是一个**`event loop`**
+
+![1681275148998](./../../../%E6%96%87%E6%A1%A3/WeChat%20Files/WeChat%20Files/wxid_erk7dgv493wp12/FileStorage/Temp/1681275148998.png)
+
+2.axios and promises
+
+使用`axios`库来与服务器进行连接：
+```js
+import ReactDOM from 'react-dom/client'
+import axios from 'axios'
+import App from './App'
+
+axios.get('http://localhost:3001/notes').then(response => {
+  const notes = response.data
+  ReactDOM.createRoot(document.getElementById('root')).render(<App notes={notes} />)
+})
+```
+
+3.useEffect
+
+```js
+useEffect(() => {
+  console.log('effect')
+
+  const eventHandler = response => {
+    console.log('promise fulfilled')
+    setNotes(response.data)
+  }
+
+  const promise = axios.get('http://localhost:3001/notes')
+  promise.then(eventHandler)
+}, [])
+```
+
+第一个参数代表运行的函数，第二个参数代表多久运行一次。如果为空则是只在第一次render后运行一次。
+
