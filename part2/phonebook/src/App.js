@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react'
 import Filter  from './components/Filter'
 import { PersonForm, Persons } from './components/Persons'
-import axios from 'axios'
-
+import noteServices from './services/noteServices'
+import Notification from './components/Notification'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState(0)
   const [newFilter, setNewFilter] = useState('')
-
+  const [errorMessage, setErrorMessage] = useState(null)
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
+    noteServices
+      .getAll()
       .then(res => {
-        setPersons(res.data)
+        setPersons(res)
       })
   },[])
 
@@ -34,17 +34,55 @@ const App = () => {
   }
   const addPerson = (event) => {
     event.preventDefault()
+    const newPerson = {
+      name: newName,
+      number: newNumber,
+      id: Math.floor(Math.random() * 100 + 20)
+    }
     if (persons
         .map(person => person.name)
         .find(name => name === newName) !== undefined) {
-          alert(`${newName} is already added to phonebook.`)
+          const index = persons.map(person => person.name).indexOf(newName)
+          const id = persons[index].id
+          const nnewPerson = {...newPerson, id: id}
+          console.log('index:', index)
+          noteServices.update(id, nnewPerson)
+            .then(res => {
+              console.log('update successfully!')
+              setPersons(
+                persons.map(person => 
+                  person.id === id ? 
+                  nnewPerson : person))
+            })
+            .catch(res => {
+              setErrorMessage(`Information of ${persons[index].name} has been removed from server`)
+              setTimeout(() => {
+                setErrorMessage(null)
+              }, 5000)
+            })
           return 
         }
-    const newPerson = {
-      name: newName,
-      number: newNumber
-    }
-    setPersons(persons.concat(newPerson))
+    
+    noteServices
+      .create(newPerson)
+      .then(res => {
+        setPersons(persons.concat(newPerson))
+        setErrorMessage(`Added ${newPerson.name}`) 
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)   
+      })
+      .catch(error => {
+        console.log('error!')
+      })
+  }
+
+  const removePerson = (id) => {
+    noteServices
+      .remove(id)
+      .then(res => {
+        setPersons(persons.filter(person => person.id !== id))
+      })
   }
 
   let personsToShow = persons
@@ -53,6 +91,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={errorMessage} />
       <Filter handleFilterChange={handleFilterChange} />
       <h2>add a new</h2>
       <PersonForm 
@@ -61,7 +100,10 @@ const App = () => {
         addPerson={addPerson}
         />
       <h2>Numbers</h2>
-      <Persons personsToShow={personsToShow} />
+      <Persons 
+        personsToShow={personsToShow} 
+        removePerson={removePerson}
+        />
     </div>
   )
 }

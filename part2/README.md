@@ -190,3 +190,87 @@ useEffect(() => {
 
 第一个参数代表运行的函数，第二个参数代表多久运行一次。如果为空则是只在第一次render后运行一次。
 
+
+
+### d. altering data in server 
+
+1.object spread
+
+```js
+const changedNote = { ...note, important: !note.important }
+```
+
+2.`services`组件
+
+用来实现与服务器连接
+
+```js
+import axios from 'axios'
+const baseUrl = 'http://localhost:3001/notes'
+
+const getAll = () => {
+  return axios.get(baseUrl).then(res => res.data)
+            
+}
+
+const create = newObject => {
+  return axios.post(baseUrl, newObject).then(res => res.data)
+}
+
+const update = (id, newObject) => {
+  return axios.put(`${baseUrl}/${id}`, newObject).then(res => res.data)
+}
+
+const noteServices = { 
+    getAll: getAll, 
+    create: create, 
+    update: update 
+  }
+
+export default noteServices
+```
+
+`export`需要输出一个对象。
+
+3.promise的catch方法用来处理错误
+
+catch方法可以被用来放在`promise`链的结尾作为一个处理函数，代表着这条链上的任意一个promise出了问题都执行这个函数。
+
+
+
+### e. adding styles to react app 
+
+1.添加错误信息
+
+```js
+noteServices
+      .update(id, changedNote)
+      .then(response => {
+      setNotes(notes.map(n => n.id !== id ? n : response))
+    })
+      .catch(error => {
+        setErrorMessage(
+          `the note '${note.content}' was already deleted from server`
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+        setNotes(notes.filter(n => n.id !== id))
+      })
+```
+
+`index.css`:
+
+```css
+.error {
+    color: red;
+    background: lightgrey;
+    font-size: 20px;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+```
+
+2.couple of important remarks

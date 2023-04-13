@@ -18,11 +18,17 @@ const PersonForm = ( {addPerson, handleNameChange, handleNumberChange} ) => {
     )
   }
   
-  const Persons = ( {personsToShow} ) => {
+  const Persons = ( {personsToShow, removePerson} ) => {
     return (
       <ul>
         {personsToShow.map(
-          person => <li key={person.name}>{person.name} {person.number}</li>
+          person => 
+          <li key={person.name}>
+            {person.name} {person.number}
+            <button onClick={() => {removePerson(person.id)}}>
+              delete
+            </button>
+          </li>
         )}
       </ul>
     )
