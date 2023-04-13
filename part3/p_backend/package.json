@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build:ui":"rm -r build && cd ../p_frontend && npm run build && cp -r ./build ../p_backend",
+    "deploy": "npm run build:ui && git add . && git commit -m build && git push",
     "dev": "nodemon index.js",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
