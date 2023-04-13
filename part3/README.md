@@ -125,3 +125,13 @@ app.post('/api/persons', (req, res) => {
 
 指如果HTTP请求有副作用，那么每次一样的请求的返回值应该一样。
 
+15.`middleware`
+
+中间件会按照`use`的先后顺序执行
+
+
+
+### b. Deploying app to internet 
+
+1.CORS
+

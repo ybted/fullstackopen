@@ -2,6 +2,7 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const logger = require('morgan')
+const cors = require('cors')
 const generateId = () => {
     return Math.floor(Math.random() * 1000)
 }
@@ -37,6 +38,7 @@ const log = logger((tokens, req, res) => {
 })
 app.use(express.json())
 app.use(log)
+app.use(cors())
 let persons = [
     { 
       "id": 1,
