@@ -26,3 +26,31 @@ const notesRouter = require('./controllers/notes')
 app.use('/api/notes', notesRouter)
 ```
 
+3.Array.reduce(function, initialvalue)
+
+例子：
+
+```js
+const average = (array) => {
+  const reducer = (sum, item) => {
+    return sum + item
+  }
+
+  return array.reduce(reducer, 0) / array.length
+}
+```
+
+
+
+4.单元测试
+
+创建了一个新的`test`文件夹，并且下载了`jest`工具
+
+```js
+npm install --save-dev jest
+```
+
+
+
+
+
