@@ -366,3 +366,158 @@ app.delete('/api/notes/:id', (request, response, next) => {
 })
 ```
 
+
+
+11.更新数据
+
+```js
+app.put('/api/notes/:id', (request, response, next) => {
+  const body = request.body
+
+  const note = {
+    content: body.content,
+    important: body.important,
+  }
+
+  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+    .then(updatedNote => {
+      response.json(updatedNote)
+    })
+    .catch(error => next(error))
+})
+```
+
+
+
+### d.validation and ESLint
+
+1.模板验证
+
+```js
+
+const noteSchema = new mongoose.Schema({
+  content: {
+    type: String,
+    minLength: 5, 
+    required: true
+  },
+  important: Boolean,
+})
+```
+
+在post中加上错误处理器：
+
+```js
+app.post('/api/notes', (request, response, next) => {
+  const body = request.body
+
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  })
+
+  note.save()
+    .then(savedNote => {
+      response.json(savedNote)
+    })
+    .catch(error => next(error))
+})
+```
+
+
+
+该变一下put方法，使得更新时也可以保证验证。
+
+```js
+app.put('/api/notes/:id', (request, response, next) => {
+  const { content, important } = request.body
+
+  Note.findByIdAndUpdate(
+    request.params.id, 
+    { content, important },
+    { new: true, runValidators: true, context: 'query' }
+  ) 
+    .then(updatedNote => {
+      response.json(updatedNote)
+    })
+    .catch(error => next(error))
+})
+```
+
+改变后的错误处理器：
+
+```js
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+```
+
+2. 前端显示后端传回的错误信息的方法
+
+```js
+personService
+    .create({ ... })
+    .then(createdPerson => {
+      // ...
+    })
+    .catch(error => {
+      // this is the way to access the error message
+      console.log(error.response.data.error)
+    })
+```
+
+
+
+3.可以在验证的要求添加一个错误信息组成数组
+
+```js
+const phonebookSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    minLength: 3,
+    required: [true, "User name required"]
+  },
+  number: {
+    type: String,
+    minLength: 8,
+    required: true
+  }
+})
+```
+
+
+
+4.使用`custom validator`来验证输入字段的更复杂的要求
+
+```js
+number: {
+    type: String,
+    minLength: 8,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return /^\d{2,3}-\d{1,}$/.test(v)
+      },
+      message: props => `${props.value} is not a valid phone number!`
+    },
+    required: [true, 'User phone number required']
+  }
+```
+
+其中还有正则表达式的验证。
+
+5.添加`Lint`静态验证。
+
+```shell
+npm install eslint --save-dev
+npx eslint --init
+```
+

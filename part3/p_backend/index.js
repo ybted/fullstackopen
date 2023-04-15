@@ -1,44 +1,38 @@
 require('dotenv').config()
 const express = require('express')
-const morgan = require('morgan')
 const app = express()
 const logger = require('morgan')
 const cors = require('cors')
 const Person = require('./modules/person')
-const { request } = require('express')
-const person = require('./modules/person')
-const generateId = () => {
-  return Math.floor(Math.random() * 1000)
-}
 
-const requestLogger = (req, res, next) => {
-  console.log('Method', req.method)
-  console.log('Path', req.path)
-  console.log('Body', req.body)
-  console.log('---')
-  next()
-}
+// const requestLogger = (req, res, next) => {
+//   console.log('Method', req.method)
+//   console.log('Path', req.path)
+//   console.log('Body', req.body)
+//   console.log('---')
+//   next()
+// }
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({error: 'unknown endpoint'})
+  res.status(404).send({ error: 'unknown endpoint' })
 }
 const log = logger((tokens, req, res) => {
-  if (tokens.method(req, res) === "POST")
-  return [
+  if (tokens.method(req, res) === 'POST')
+    return [
       tokens.method(req, res),
       tokens.url(req, res),
       tokens.status(req, res),
       tokens.res(req, res, 'content-length'), '-',
       tokens['response-time'](req, res), 'ms',
       JSON.stringify(req.body)
-  ].join(' ')
-  else 
-  return [
+    ].join(' ')
+  else
+    return [
       tokens.method(req, res),
       tokens.url(req, res),
       tokens.status(req, res),
       tokens.res(req, res, 'content-length'), '-',
       tokens['response-time'](req, res), 'ms'
-  ].join(' ')
+    ].join(' ')
 })
 app.use(express.json())
 app.use(log)
@@ -58,7 +52,7 @@ app.get('/api/persons', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-  Person.findById(req.params.id).then(person =>{
+  Person.findById(req.params.id).then(person => {
     res.json(person)
   })
 })
@@ -66,21 +60,22 @@ app.get('/api/persons/:id', (req, res) => {
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
     .then(result => {
+      console.log(result)
       res.status(204).end()
     })
     .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res, next) => {
-    const body = req.body 
-    const newPerson = new Person({
-        ...body
-    })
-    newPerson.save()
-      .then(savedNote => {
+  const body = req.body
+  const newPerson = new Person({
+    ...body
+  })
+  newPerson.save()
+    .then(savedNote => {
       res.json(savedNote)
     })
-      .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
@@ -91,7 +86,7 @@ app.put('/api/persons/:id', (req, res, next) => {
     number: body.number
   }
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true})
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
     .then(updatedPerson => {
       res.json(updatedPerson)
     })
@@ -106,8 +101,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name == 'ValidationError') {
-    return response.status(400).json({ error: error.message})
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error)

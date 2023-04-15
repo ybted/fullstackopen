@@ -5,6 +5,7 @@ const url = process.env.MONGODB_URI
 mongoose.set('strictQuery', false)
 mongoose.connect(url)
   .then(result => {
+    console.log(result)
     console.log('connected to MongoDB')
   })
   .catch((error) => {
@@ -15,12 +16,11 @@ const phonebookSchema = new mongoose.Schema({
   name: {
     type: String,
     minLength: [3, 'User name cannot be shorter than 3 characters'],
-    required: [true, "User name required"]
+    required: [true, 'User name required']
   },
   number: {
     type: String,
     minLength: 8,
-    required: true,
     validate: {
       validator: function(v) {
         return /^\d{2,3}-\d{1,}$/.test(v)
