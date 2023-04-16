@@ -1,48 +1,37 @@
 const notesRouter = require('express').Router()
-const Note = require('../modules/note')
+const Note = require('../models/note')
 
-notesRouter.get('/', (req, res) => {
-  Note.find({}).then(notes => {
-    res.json(notes)
-  })
+notesRouter.get('/', async (req, res) => {
+  const notes = await Note.find({})
+  res.json(notes)
 })
 
-notesRouter.get('/:id', (req, res, next) => {
-  Note.findById(req.params.id)
-    .then(note => {
-      if(note) {
-        res.json(note)
-      } else {
-        res.status(404).end()
-      }
-    })
-    .catch(error => next(error))
+notesRouter.get('/:id', async (req, res) => {
+  const note = await Note.findById(req.params.id)
+  if (note) {
+    res.json(note)
+  } else {
+    res.status(404).end()
+  }
 })
 
-notesRouter.post('/', (req, res, next) => {
+notesRouter.post('/', async (req, res) => {
   const body = req.body
 
   const note = new Note({
     content: body.content,
     important: body.important || false,
   })
-
-  note.save()
-    .then(savedNote => {
-      res.json(savedNote)
-    })
-    .catch(error => next(error))
+  const savedNote = await note.save()
+  res.status(201).json(savedNote)
 })
 
-notesRouter.delete('/:id', (req, res, next) => {
-  Note.findByIdAndRemove(req.params.id)
-    .then(() => {
-      res.status(204).end()
-    })
-    .catch(error => next(error))
+notesRouter.delete('/:id', async (req, res) => {
+  await Note.findByIdAndRemove(req.params.id)
+  res.status(204).end()
 })
 
-notesRouter.put('/:id', (req, res, next) => {
+notesRouter.put('/:id', async (req, res) => {
   const body = req.body
 
   const note = {
@@ -50,11 +39,8 @@ notesRouter.put('/:id', (req, res, next) => {
     important: body.important,
   }
 
-  Note.findByIdAndUpdate(req.params.id, note, { new: true })
-    .then(updatedNote => {
-      res.json(updatedNote)
-    })
-    .catch(error => next(error))
+  const updatedNote = await Note.findByIdAndUpdate(req.params.id, note, { new: true })
+  res.json(updatedNote)
 })
 
 module.exports = notesRouter
