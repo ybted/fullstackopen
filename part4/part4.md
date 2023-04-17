@@ -210,3 +210,196 @@ const blogSchema = new mongoose.Schema({
 })
 ```
 
+
+
+### c.User administration
+
+1.`User`和`Note`模板的相互引用
+
+```js
+const noteSchema = new mongoose.Schema({
+  content: {
+    type: String,
+    minLength: 5,
+    required: true
+  },
+  important: Boolean,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }
+})
+```
+
+```js
+const userSchema = new mongoose.Schema({
+  username: String,
+  name: String,
+  passwordHash: String,
+  notes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Note'
+    }
+  ],
+})
+```
+
+2.TTD
+
+`test-driven development`即`TTD`指再实现功能之前先写该功能的测试。
+
+3.模板的`unique`检测
+
+```shell
+npm install mongoose-unique-validator
+```
+
+```js
+const mongoose = require('mongoose')
+const uniqueValidator = require('mongoose-unique-validator')
+
+const userSchema = mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  name: String,
+  passwordHash: String,
+  notes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Note'
+    }
+  ],
+})
+
+userSchema.plugin(uniqueValidator)
+
+```
+
+4.`find`的`populate`方法
+
+是基于之前模板里的`ref: `。
+
+```js
+notesRouter.get('/', async (request, response) => {
+  const notes = await Note
+    .find({}).populate('user', { username: 1, name: 1 })
+
+  response.json(notes)
+})
+```
+
+
+
+```js
+usersRouter.get('/', async (request, response) => {
+  const users = await User
+    .find({}).populate('notes', { content: 1, important: 1 })
+
+  response.json(users)
+})
+```
+
+
+
+### d.token authentication
+
+1.登录代码
+
+```js
+loginRouter.post('/', async (req, res) => {
+  const { username, password } = req.body
+
+  const user = await User.findOne({ username })
+  const passwordCorrect = user === null
+    ? false
+    : await bcrypt.compare(password, user.passwordHash)
+
+  if (!(user && passwordCorrect)) {
+    return res.status(401).json({
+      error: 'invalid username or password'
+    })
+  }
+
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+
+  const token = jwt.sign(userForToken, process.env.SECRET)
+  res
+    .status(200)
+    .send({ token, username: user.username, name: user.name })
+
+})
+```
+
+成功之后就返回一个`JWT`。
+
+2.`jwt`
+
+将登录代码得到的`TOKEN`加入bearer 放入POST请求的`Authorization`栏即可登录添加。
+
+```
+POST http://localhost:3001/api/notes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2NDNjYTYxYzFhZGFlNWMzZmVlNDM3MGMiLCJpYXQiOjE2ODE3MDc4NDR9.0qVwRUyXzSa04X24SjlpENMLYMYtjEpMTZ0_xZ5dwUI
+
+{
+    "content": "Single Page Apps use token authentication",
+    "important": true
+}
+```
+
+对得到的`token`进行处理，核对成功即可添加内容：
+
+```js
+const jwt = require('jsonwebtoken')
+
+// ...
+const getTokenFrom = request => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
+
+notesRouter.post('/', async (request, response) => {
+  const body = request.body
+  const decodedToken = jwt.verify(getTokenFrom(request), process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+  const user = await User.findById(decodedToken.id)
+
+  const note = new Note({
+    content: body.content,
+    important: body.important === undefined ? false : body.important,
+    user: user._id
+  })
+
+  const savedNote = await note.save()
+  user.notes = user.notes.concat(savedNote._id)
+  await user.save()
+
+  response.json(savedNote)
+})
+```
+
+3.`tokenExtractor`中间件
+
+```js
+const tokenExtractor = (req, res, next) => {
+  const authorization = req.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    req.token = authorization.replace('Bearer ', '')
+  }
+  next()
+}
+const u
+```
+
