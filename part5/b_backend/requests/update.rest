@@ -1,0 +1,14 @@
+PUT http://localhost:3003/api/blogs/643e447994e31a342028fa1a
+Content-Type: application/json
+
+{
+  "title": "biliblibil",
+  "author": "yb",
+  "url": "https://bilibilli.com", 
+  "likes": 2,
+  "user": {
+    "username": "mluukkai",
+    "name": "Matti Luukkainen",
+    "id": "643cdb855e9df5fffecb1ebe"
+  }
+}

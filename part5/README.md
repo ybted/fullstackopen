@@ -96,3 +96,78 @@ const update = (id, newObject) => {
 export default { getAll, create, update, setToken }
 ```
 
+###  b.props children and prototypes
+
+1.`props.children`
+
+```react
+<Togglable buttonLabel="new note">
+  <NoteForm
+    onSubmit={addNote}
+    value={newNote}
+    handleChange={handleNoteChange}
+  />
+</Togglable>
+```
+
+`NoteForm`是`Togglable`的props.children，这个参数是自动生成的。
+
+2.学会拆分状态和函数到更小的组件中
+
+3.`useRef`
+
+用该函数访问子组件中的函数
+
+```js
+import { useState, useEffect, useRef } from 'react'
+
+const App = () => {
+  // ...
+  const noteFormRef = useRef()
+
+  const noteForm = () => (
+    <Togglable buttonLabel='new note' ref={noteFormRef}>
+      <NoteForm createNote={addNote} />
+    </Togglable>
+  )
+
+  // ...
+}
+```
+
+```js
+import { useState, forwardRef, useImperativeHandle } from 'react'
+
+const Togglable = forwardRef((props, refs) => {
+  const [visible, setVisible] = useState(false)
+
+  const hideWhenVisible = { display: visible ? 'none' : '' }
+  const showWhenVisible = { display: visible ? '' : 'none' }
+
+  const toggleVisibility = () => {
+    setVisible(!visible)
+  }
+
+  useImperativeHandle(refs, () => {
+    return {
+      toggleVisibility
+    }
+  })
+
+  return (
+    <div>
+      <div style={hideWhenVisible}>
+        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+      </div>
+      <div style={showWhenVisible}>
+        {props.children}
+        <button onClick={toggleVisibility}>cancel</button>
+      </div>
+    </div>
+  )
+})
+
+export default Togglable
+```
+
+3.model中有引用时，put不能包含那个值。
