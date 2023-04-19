@@ -14,21 +14,21 @@ const getAll = () => {
 
 const create = async newObject => {
   const config = {
-    headers: {Authorization: token},
+    headers: { Authorization: token },
   }
   const response = await axios.post(baseUrl, newObject, config)
   return response.data
 }
 
-const update = (id, newObject) => {
-  return axios.put(`${baseUrl}/${id}`, newObject).then(res => res.data)
+const update = (newObject) => {
+  return axios.put(`${baseUrl}/${newObject.id}`, newObject).then(res => res.data)
 }
 
 const remove = (id) => {
   const config = {
-    headers: {Authorization: token},
+    headers: { Authorization: token },
   }
   return axios.delete(`${baseUrl}/${id}`, config).then(res => res.data)
 }
-// eslint-disable-next-line import/no-anonymous-default-export
-export default { getAll, setToken, create, update, remove}
+// eslint-disable-next-line
+export default { getAll, setToken, create, update, remove }

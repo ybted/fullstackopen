@@ -61,6 +61,19 @@ const App = () => {
         setBlogs(blogs.concat(res))
       })
   }
+
+  const updateBlog = async (BlogToUpdate) => {
+    const updatedBlog = await blogServices.update(BlogToUpdate)
+    setBlogs(blogs.map(b => b.id === updatedBlog.id ? updatedBlog : b))
+  }
+
+  const deleteBlog = async (BlogToDelete) => {
+    if (window.confirm(`Delete ${BlogToDelete.title} ?`)) {
+      blogServices.remove(BlogToDelete.id)
+      setBlogs(blogs.filter(blog => blog.id !== BlogToDelete.id))
+    }
+  }
+
   const loginForm = () => (
     <LoginForm
       username={username}
@@ -82,7 +95,7 @@ const App = () => {
       {blogs.sort((a, b) => {
         return b.likes - a.likes
       }).map(blog =>
-        <Blog key={blog.id} blog={blog} setBlogs={setBlogs} blogs={blogs}/>
+        <Blog key={blog.id} blog={blog} updateBlog={updateBlog} deleteBlog={deleteBlog} />
       )
       }
     </>

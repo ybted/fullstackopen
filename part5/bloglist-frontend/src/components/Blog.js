@@ -1,7 +1,10 @@
 import { useState } from 'react'
-import blogServices from '../services/blogs'
-const Blog = ({ blog, setBlogs, blogs }) => {
+import PropTypes from 'prop-types'
+const Blog = (props) => {
+  const blog = props.blog
   const [show, setShow] = useState(false)
+  const showWhenVisible = { display: show ? '' : 'none' }
+
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -13,54 +16,39 @@ const Blog = ({ blog, setBlogs, blogs }) => {
     setShow(!show)
   }
 
-  const updateBlog = (blog) => {
-    const newBlog = {
+  const increaseLikes = async () => {
+    const updatedBlog = ({
       ...blog,
       likes: blog.likes + 1
-    }
-    console.log('blog', blog)
-    console.log('update...')
-    blogServices.update(blog.id, newBlog)
-      .then(blog => {
-        console.log('update!')
-        setBlogs(blogs.map(b => b.id === blog.id ? newBlog : b))
-      })
-      .catch(error => {
-        console.log('something is wrong')
-        console.log('error', error)
-      })
-
+    })
+    await props.updateBlog(updatedBlog)
   }
 
-  const deleteBlog = (blog) => {
-    console.log('delete...')
-    blogServices.remove(blog.id)
-      .then(blog => {
-        console.log('delete!')
-        setBlogs(blogs.filter(b => b.id !== blog.id))
-      })
-      .catch(error => {
-        console.log('something is wrong during deleting')
-        console.log(error)
-      })
-  }
+
+  const removeBlog = () => props.deleteBlog(blog)
 
   return (
-    <div style={blogStyle}>
-      {blog.title}
-      <button onClick={toggeleVisibility}>
-        {show === false ?
-          'view' :
-          'hide'}
-      </button>
-      {show && <div>
+    <div style={blogStyle} className='blogContent'>
+      <div>{blog.title} - {blog.author}
+        <button onClick={toggeleVisibility}>
+          {show === false ?
+            'view' :
+            'hide'}
+        </button>
+      </div>
+      <div style={showWhenVisible}>
         <p>{blog.url}</p>
-        <p>{blog.likes}<button onClick={() => updateBlog(blog)}>like</button></p>
-        <p>{blog.author}</p>
-        <button onClick={() => deleteBlog(blog)}>delete</button>
-      </div>}
+        <p>{blog.likes} <button id='like-button' onClick={increaseLikes}>like</button></p>
+        <button id='remove' onClick={removeBlog}>remove</button>
+      </div>
     </div>
   )
+}
+
+Blog.propTypes = {
+  blog: PropTypes.object.isRequired,
+  updateBlog: PropTypes.func.isRequired,
+  deleteBlog: PropTypes.func.isRequired
 }
 
 export default Blog
