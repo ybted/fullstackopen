@@ -228,3 +228,101 @@ test('renders content', () => {
 })
 ```
 
+2.debugging tests
+
+`screen.debug()`
+
+会在终端打印出渲染得到的html
+
+```html
+console.log
+  <body>
+    <div>
+      <li
+        class="note"
+      >
+        Component testing is done with react-testing-library
+        <button>
+          make not important
+        </button>
+      </li>
+    </div>
+  </body>
+```
+
+`screen.debug(element)`
+
+也可以print单独的元素
+
+```html
+ <li
+    class="note"
+  >
+    Component testing is done with react-testing-library
+    <button>
+      make not important
+    </button>
+  </li>
+```
+
+3.`mock`函数(模拟函数)
+
+用`mock`函数来模拟用户的点击操作。
+
+```js
+import React from 'react'
+import '@testing-library/jest-dom/extend-expect'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import Note from './Note'
+
+// ...
+
+test('clicking the button calls event handler once', async () => {
+  const note = {
+    content: 'Component testing is done with react-testing-library',
+    important: true
+  }
+
+  const mockHandler = jest.fn()
+
+  render(
+    <Note note={note} toggleImportance={mockHandler} />
+  )
+
+  const user = userEvent.setup()
+  const button = screen.getByText('make not important')
+  await user.click(button)
+
+  expect(mockHandler.mock.calls).toHaveLength(1)
+})
+```
+
+4.找元素
+
+`getByRole`:可以返回单个类型的元素，但有同类型的两个时会报错。
+
+```js
+const input = screen.getByRole('textbox')
+```
+
+`getAllByRole`:可以返回一个数组，包含所搜索类型的所有元素
+
+```js
+const inputs = screen.getAllByRole('textbox')
+```
+
+`getByPlaceHolder`:返回相同占位符的元素
+
+用`id`来找元素。
+
+```js
+const { container } = render(<NoteForm createNote={createNote} />)
+
+const input = container.querySelector('#note-input')
+```
+
+`getByText`:
+
+`findByText`:
+
