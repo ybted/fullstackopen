@@ -56,3 +56,23 @@ const notes = useSelector(state => state)
 
 4.现在状态变量被分到一个单独的空间中，以至于所有组件都可以获取需要的状态变量。
 
+### c. Asynchronous actions and Redux thunk
+
+```js
+export const initializeNotes = () => {
+  return async dispatch => {
+    const notes = await noteService.getAll()
+    dispatch(setNotes(notes))
+  }
+}
+
+export const createNote = content => {
+  return async dispatch => {
+    const newNote = await noteService.createNew(content)
+    dispatch(appendNote(newNote))
+  }
+}
+```
+
+
+
